@@ -1,8 +1,8 @@
 # Tic-Tac-Toe
-A text-based version of tic-tac-toe made in Python.
+A text-based version of Tic-Tac-Toe made in Python.
 
 # Project Description
-I wanted to make tic-tac-toe with a enemy AI for the player to fight against. The AI should be impossible defeat, as how a game of tic-tac-toe is when played between two expert players.
+I wanted to make a Tic-Tac-Toe game with a enemy AI for the player to fight against. The AI should be impossible defeat, as how a game of tic-tac-toe is when played between two expert players.
 
 To understand all the strategies of the game, I refered to a How-To wiki. From there I broke down the strategies into code that makes up the simple AI.
 I noticed that the moves taken depend on the round hence the moves taken by the computer revolves around what round it is.
