@@ -83,8 +83,11 @@ class EnemyAI:
                         select = self.opposite_corner(board, self.mark)
                         if select != "False":
                             return select + 1
-            # else select any available corner
-            select = random.choice(self.available_slots_corners)
+                # else select any available corner
+                select = random.choice(self.available_slots_corners)
+                return select + 1
+            # else select any available slot
+            select = random.choice(self.available_slots)
             return select + 1
 
         elif move_number == 4 or move_number == 5:  # Computer is player 1 or 2
@@ -116,9 +119,10 @@ class EnemyAI:
             if possible_win != "False":
                 return possible_win + 1
             # else block player if player is about to win
-            possible_win_block = self.check_possible_win(board.copy(), player.mark)
-            if possible_win_block != "False":
-                return possible_win_block + 1
+            if self.difficulty > 1:
+                possible_win_block = self.check_possible_win(board.copy(), player.mark)
+                if possible_win_block != "False":
+                    return possible_win_block + 1
             # else select any available slot
             select = random.choice(self.available_slots)
             return select + 1
