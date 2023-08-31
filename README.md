@@ -6,7 +6,7 @@ The AI has three difficulties to choose from: Easy, Medium, and Impossible. Easy
 
 To understand all the strategies of the game, I referred to a How-To wiki. From there I broke down the strategies into code that makes up the enemy AI. I noticed that the moves taken depend on the move number hence the moves taken by the computer revolve around what move number it is. You may see the result of this coding in enemy_ai.py.
 
-The main.py contains the interface with the player. It also contains functions that help verify any inputs.
+The main.py contains the interface with the player.
 
 The check_win.py is used by main.py to check if any player has won. It is also used by enemy_ai.py to predict possible wins.
 
