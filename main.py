@@ -2,7 +2,7 @@
 
 from art import logo
 from player import Player
-import enemy_ai
+from enemy_ai import EnemyAI
 from check_win import check_win
 
 board_base = [1, 2, 3,
@@ -20,7 +20,7 @@ def draw_board(board):
     print("")
 
 
-def verify_number(select, board, player):
+def verify_number(select, choice, board, player):
     number_valid = False
     number_is_number = False
 
@@ -29,40 +29,29 @@ def verify_number(select, board, player):
             try:
                 select = int(select)
             except ValueError:
-                select = input(f"<({player.mark}){player.name}> That was not a number. Please try again: ")
+                if board:
+                    select = input(f"<({player.mark}){player.name}> That was not a number. Please try again: ")
+                else:
+                    select = input("That was not a number. Please try again: ")
             else:
                 number_is_number = True
 
-        if select < 1 or select > 9:
-            select = input(f"<({player.mark}){player.name}> Number selected is not on board. Please try again: ")
-            number_is_number = False
-        elif board[select - 1] != select:
-            select = input(f"<({player.mark}){player.name}> That spot is already taken. Please try again: ")
-            number_is_number = False
+        if board:
+            if select < 1 or select > choice:
+                select = input(f"<({player.mark}){player.name}> Number selected is not on board. Please try again: ")
+                number_is_number = False
+            elif board[select - 1] != select:
+                select = input(f"<({player.mark}){player.name}> That spot is already taken. Please try again: ")
+                number_is_number = False
+            else:
+                number_valid = True
         else:
-            number_valid = True
+            if select < 1 or select > choice:
+                select = input("Number selected is not valid. Please try again: ")
+                number_is_number = False
+            else:
+                number_valid = True
     return select
-
-
-def verify_menu_number(choice):
-    number_valid = False
-    number_is_number = False
-
-    while not number_valid:
-        while not number_is_number:
-            try:
-                choice = int(choice)
-            except ValueError:
-                choice = input("That was not a number. Please try again: ")
-            else:
-                number_is_number = True
-
-        if choice < 1 or choice > 2:
-            choice = input("Only option 1 or 2 is available. Please try again: ")
-            number_is_number = False
-        else:
-            number_valid = True
-    return choice
 
 
 def play_game():
@@ -70,72 +59,78 @@ def play_game():
     menu_1 = "\n1. Player VS Computer\n2. Player VS Player"
     print(menu_1)
     versus = input("\nSelect 1 or 2 for type of game: ")
-    versus = verify_menu_number(versus)
+    versus = verify_number(versus, 2, None, None)
 
-    # setup players
+    # setup default players
     player_1 = Player("PLAYER 1", "X")
     player_2 = Player("PLAYER 2", "O")
-
+    # query on who is playing, redefine players as needed
     if versus == 1:
         print("\nPLAYER VS COMPUTER")
-        menu_2 = "\n1. Player\n2. Computer"
-        print(menu_2)
-        first = input("\nSelect 1 or 2 to decide who goes first: ")
-        first = verify_menu_number(first)
-        if first == 1:
-            player_1.name = "PLAYER"
-            player_2.name = "COMPUTER"
+        print("\n1. Easy\n2. Medium\n3. Impossible")
+        difficulty = input("\nSelect difficulty level: ")
+        difficulty = verify_number(difficulty, 3, None, None)
+        if difficulty == 1:
+            print("\nEASY DIFFICULTY")
+        elif difficulty == 2:
+            print("\nMEDIUM DIFFICULTY")
         else:
-            player_1.name = "COMPUTER"
-            player_2.name = "PLAYER"
+            print("\nIMPOSSIBLE DIFFICULTY")
+        print("\n1. Player\n2. Computer")
+        first = input("\nSelect 1 or 2 to decide who goes first: ")
+        first = verify_number(first, 2, None, None)
+        if first == 1:
+            player_1 = Player("PLAYER", "X")
+            player_2 = EnemyAI("COMPUTER", "O", difficulty)
+        else:
+            player_1 = EnemyAI("COMPUTER", "X", difficulty)
+            player_2 = Player("PLAYER", "O")
     else:
         print("\nPLAYER VS PLAYER")
 
+    # quick tip
     print("\nTip: the board's number arrangement is like the keypad so you may want to use the keypad.")
+
     # setup game
     board = board_base.copy()
-    current_player = player_1
+    players = [player_1, player_2]
     game_over = False
-    game_round = 0
+    move_number = 0
+    i = 0
 
+    # start game
     while not game_over:
+        # start with first player / switch players
+        current_player = players[i]
+        i = -(i - 1)
+        next_player = players[i]
+
         print(f"\n{current_player.name}'S TURN")
         draw_board(board)
 
+        # player move
         if current_player.name == "COMPUTER":
-            computer = current_player
-            player = player_1
-            if current_player == player_1:
-                player = player_2
-            select = enemy_ai.main(board.copy(), computer, player, game_round)
+            select = current_player.update(board.copy(), next_player, move_number)
             print(f"<({current_player.mark}){current_player.name}> Selects: {select}")
         else:
             select = input(f"<({current_player.mark}){current_player.name}> Select a number above to mark: ")
+            select = verify_number(select, 9, board, current_player)
 
-            # verify number is valid
-            select = verify_number(select, board, current_player)
-
-        # revert the board and mark it
+        # put player's mark on selected board slot
         board[select - 1] = current_player.mark
 
         # check if a line is formed
         game_over = check_win(board, current_player.mark)
-
-        game_round = game_round + 1
-
         if game_over:
             draw_board(board)
             print(f"({current_player.mark}){current_player.name} WINS!")
-        elif game_round == 9:
-            draw_board(board)
-            print(f"IT'S A DRAW!")
-            game_over = True
         else:
-            # swap to next player
-            if current_player == player_1:
-                current_player = player_2
-            else:
-                current_player = player_1
+            # increment move_number and check if round limit reached
+            move_number = move_number + 1
+            if move_number == 9:
+                draw_board(board)
+                print(f"IT'S A DRAW!")
+                game_over = True
 
 
 # main
@@ -147,7 +142,7 @@ while repeat:
     menu_3 = "\n1. New game\n2. Exit"
     print(menu_3)
     play_again = input("\nSelect 1 or 2: ")
-    play_again = verify_menu_number(play_again)
+    play_again = verify_number(play_again, 2, None, None)
     if play_again == 1:
         continue
     else:
