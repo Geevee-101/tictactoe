@@ -26,106 +26,107 @@ class EnemyAI:
                     self.available_slots_edges.remove(i)
 
         # selection depends on move number
-        if move_number == 0:  # Computer is player 1
-            if self.difficulty == 3:
-                # select a corner as first move
-                select = random.choice(self.available_slots_corners)
-                return select + 1
-            else:
-                select = random.choice(self.available_slots)
-                return select + 1
-
-        elif move_number == 1:  # Computer is player 2
-            if self.difficulty == 3:
-                # if player didn't start at center, select the center
-                if board[4] != player.mark:
-                    return 5
-                # else select any available corner
-                else:
+        match move_number:
+            case 0:  # Computer is player 1
+                if self.difficulty == 3:
+                    # select a corner as first move
                     select = random.choice(self.available_slots_corners)
                     return select + 1
-            else:
+                else:
+                    select = random.choice(self.available_slots)
+                    return select + 1
+
+            case 1:  # Computer is player 2
+                if self.difficulty == 3:
+                    # if player didn't start at center, select the center
+                    if board[4] != player.mark:
+                        return 5
+                    # else select any available corner
+                    else:
+                        select = random.choice(self.available_slots_corners)
+                        return select + 1
+                else:
+                    select = random.choice(self.available_slots)
+                    return select + 1
+
+            case 2:  # Computer is player 1
+                if self.difficulty == 3:
+                    # if player didn't select center, select a corner
+                    if board[4] != player.mark:
+                        select = self.possible_win_move(board, self.mark, 1)
+                        return select + 1
+                    # else if player select center then select opposite corner
+                    elif self.difficulty == 3:
+                        select = self.opposite_corner(board.copy(), self.mark)
+                        return select + 1
+                # else select any available slot
                 select = random.choice(self.available_slots)
                 return select + 1
 
-        elif move_number == 2:  # Computer is player 1
-            if self.difficulty == 3:
-                # if player didn't select center, select a corner
-                if board[4] != player.mark:
-                    select = self.possible_win_move(board, self.mark, 1)
-                    return select + 1
-                # else if player select center then select opposite corner
-                elif self.difficulty == 3:
-                    select = self.opposite_corner(board.copy(), self.mark)
-                    return select + 1
-            # else select any available slot
-            select = random.choice(self.available_slots)
-            return select + 1
-
-        elif move_number == 3:  # Computer is player 2
-            if self.difficulty > 1:
-                # block player if player is about to win
-                possible_win_block = self.check_possible_win(board.copy(), player.mark)
-                if possible_win_block != "False":
-                    return possible_win_block + 1
-                if self.difficulty == 3:
-                    # if player has both opposite corners, select an edge
-                    opposite = self.opposite_corner_same(board.copy(), player.mark)
-                    if opposite != "False":
-                        select = random.choice(self.available_slots_edges)
-                        return select + 1
-                    # block player if player is about to make a two winning move
-                    possible_two_block = self.possible_win_move(board.copy(), player.mark, 2)
-                    if possible_two_block != "False":
-                        return possible_two_block + 1
-                    # else select opposite corner if computer's first move was not center slot
-                    if board[4] != self.mark:
-                        select = self.opposite_corner(board, self.mark)
-                        if select != "False":
+            case 3:  # Computer is player 2
+                if self.difficulty > 1:
+                    # block player if player is about to win
+                    possible_win_block = self.check_possible_win(board.copy(), player.mark)
+                    if possible_win_block != "False":
+                        return possible_win_block + 1
+                    if self.difficulty == 3:
+                        # if player has both opposite corners, select an edge
+                        opposite = self.opposite_corner_same(board.copy(), player.mark)
+                        if opposite != "False":
+                            select = random.choice(self.available_slots_edges)
                             return select + 1
-                # else select any available corner
-                select = random.choice(self.available_slots_corners)
+                        # block player if player is about to make a two winning move
+                        possible_two_block = self.possible_win_move(board.copy(), player.mark, 2)
+                        if possible_two_block != "False":
+                            return possible_two_block + 1
+                        # else select opposite corner if computer's first move was not center slot
+                        if board[4] != self.mark:
+                            select = self.opposite_corner(board, self.mark)
+                            if select != "False":
+                                return select + 1
+                    # else select any available corner
+                    select = random.choice(self.available_slots_corners)
+                    return select + 1
+                # else select any available slot
+                select = random.choice(self.available_slots)
                 return select + 1
-            # else select any available slot
-            select = random.choice(self.available_slots)
-            return select + 1
 
-        elif move_number == 4 or move_number == 5:  # Computer is player 1 or 2
-            # check if computer can win
-            possible_win = self.check_possible_win(board.copy(), self.mark)
-            if possible_win != "False":
-                return possible_win + 1
-            if self.difficulty > 1:
+            case 4 | 5:  # Computer is player 1 or 2
+                # check if computer can win
+                possible_win = self.check_possible_win(board.copy(), self.mark)
+                if possible_win != "False":
+                    return possible_win + 1
+                if self.difficulty > 1:
+                    # else block player if player is about to win
+                    possible_win_block = self.check_possible_win(board.copy(), player.mark)
+                    if possible_win_block != "False":
+                        return possible_win_block + 1
+                    if self.difficulty == 3:
+                        # else check if two winning moves is possible
+                        possible_two = self.possible_win_move(board.copy(), self.mark, 2)
+                        if possible_two != "False":
+                            return possible_two + 1
+                        # else check if one winning move is possible
+                        possible_one = self.possible_win_move(board.copy(), self.mark, 1)
+                        if possible_one != "False":
+                            return possible_one + 1
+                # else select any available slot
+                select = random.choice(self.available_slots)
+                return select + 1
+
+            case _:  # rest of move numbers. Computer is player 1 or 2
+                # check if computer can win
+                possible_win = self.check_possible_win(board.copy(), self.mark)
+                if possible_win != "False":
+                    return possible_win + 1
                 # else block player if player is about to win
-                possible_win_block = self.check_possible_win(board.copy(), player.mark)
-                if possible_win_block != "False":
-                    return possible_win_block + 1
-                if self.difficulty == 3:
-                    # else check if two winning moves is possible
-                    possible_two = self.possible_win_move(board.copy(), self.mark, 2)
-                    if possible_two != "False":
-                        return possible_two + 1
-                    # else check if one winning move is possible
-                    possible_one = self.possible_win_move(board.copy(), self.mark, 1)
-                    if possible_one != "False":
-                        return possible_one + 1
-            # else select any available slot
-            select = random.choice(self.available_slots)
-            return select + 1
-
-        else:  # rest of move numbers. Computer is player 1 or 2
-            # check if computer can win
-            possible_win = self.check_possible_win(board.copy(), self.mark)
-            if possible_win != "False":
-                return possible_win + 1
-            # else block player if player is about to win
-            if self.difficulty > 1:
-                possible_win_block = self.check_possible_win(board.copy(), player.mark)
-                if possible_win_block != "False":
-                    return possible_win_block + 1
-            # else select any available slot
-            select = random.choice(self.available_slots)
-            return select + 1
+                if self.difficulty > 1:
+                    possible_win_block = self.check_possible_win(board.copy(), player.mark)
+                    if possible_win_block != "False":
+                        return possible_win_block + 1
+                # else select any available slot
+                select = random.choice(self.available_slots)
+                return select + 1
 
     def check_possible_win(self, board, mark):
         for i in self.available_slots:
